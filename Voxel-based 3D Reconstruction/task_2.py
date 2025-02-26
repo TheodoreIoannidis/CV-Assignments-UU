@@ -82,12 +82,17 @@ def get_background_models(cams):
 def process_video(cam, background_model):
     #run the model on a video capture to extract fore/background and show
     video = cv2.VideoCapture(f"data/{cam}/video.avi")
+    rand_frame=0
     while True:
         ret, frame = video.read()
         if not ret:
             break 
-
+        
         mask = background_subtraction(frame, background_model, kernel_size=(7,7), hsv_thresholds= (30, 30, 30))
+
+        if rand_frame==10:
+            cv2.imwrite(f"data/{cam}/foreground_mask.png", mask)
+        rand_frame+=1
 
         cv2.imshow(f"{cam} - Input Frame", frame)
         cv2.imshow(f"{cam} - Background Model", background_model)
@@ -131,3 +136,4 @@ if __name__ == "__main__":
 
 
 #grid search kernel size (5,5 7,7)
+#gaussian distrib for each pixel
