@@ -3,11 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def load_config(cam): 
-    fs = cv2.FileStorage(f"data/{cam}/config.xml", cv2.FILE_STORAGE_READ)    
-    camera_matrix = fs.getNode("camera_matrix").mat()
-    dist_coeffs = fs.getNode("distortion_coefficients").mat()
-    rvec = fs.getNode("rvec").mat()
-    tvec = fs.getNode("tvec").mat()
+    fs = cv2.FileStorage(f"data/{cam}/config.xml", cv2.FILE_STORAGE_READ)  
+    print("fs" , fs)  
+    camera_matrix = fs.getNode("CameraMatrix").mat()
+    print("\ncamera: ", camera_matrix)
+    dist_coeffs = fs.getNode("DistortionCoeffs").mat()
+    rvec = fs.getNode("RotationMatrix").mat()
+    print("\nrvec", rvec)
+    tvec = fs.getNode("TranslationVector").mat()
     fs.release()
     return camera_matrix, dist_coeffs, rvec, tvec
 

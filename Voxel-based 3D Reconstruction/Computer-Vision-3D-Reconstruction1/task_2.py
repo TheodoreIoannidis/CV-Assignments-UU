@@ -50,6 +50,9 @@ def background_subtraction(frame, background, kernel_size = (5,5), hsv_threshold
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     background_hsv = cv2.cvtColor(background, cv2.COLOR_BGR2HSV)
     
+    if frame_hsv.shape != background_hsv.shape:
+        background_hsv = cv2.resize(background_hsv, (frame_hsv.shape[1], frame_hsv.shape[0]))
+    
     diff = cv2.absdiff(frame_hsv, background_hsv)
     value_diffs = cv2.split(diff)
     
@@ -91,6 +94,8 @@ def process_video(cam, background_model):
         mask = background_subtraction(frame, background_model, kernel_size=(7,7), hsv_thresholds= (30, 30, 30))
 
         if rand_frame==10:
+            print("Saving image...")
+            cv2.imwrite(f"data/{cam}/sampled_image.png", frame)
             cv2.imwrite(f"data/{cam}/foreground_mask.png", mask)
         rand_frame+=1
 
@@ -106,19 +111,39 @@ def process_video(cam, background_model):
 
 
 
-# def optimize_thresholds(background, frame, ground_truth_mask):
-#     best_score = float('inf')
-#     best_thresholds = (0,0,0)
-#     for h_t in range(0, 51, 5):
-#         for s_t in range(0, 51, 5):
-#             for v_t in range(0, 51, 5):
-#                 mask = custom_subtraction(frame, background, h_t, s_t, v_t)
-#                 # Compute XOR or F1 score
-#                 score = compute_xor(mask, ground_truth_mask)
-#                 if score < best_score:
-#                     best_score = score
-#                     best_thresholds = (h_t, s_t, v_t)
-#     return best_thresholds
+def optimize_thresholds(background, frame, ground_truth_mask):
+    best_score = float('inf')
+    best_thresholds = (0,0,0)
+    for h_t in range(0, 101, 5):
+        for s_t in range(0, 101, 5):
+            for v_t in range(0, 101, 5):
+                mask = background_subtraction(frame, background, kernel_size=(7,7), hsv_thresholds=(h_t, s_t, v_t))
+                # Compute XOR or F1 score
+                score = compute_xor(mask, ground_truth_mask)
+                if score < best_score:
+                    best_score = score
+                    best_thresholds = (h_t, s_t, v_t)
+    return best_thresholds, best_score
+
+
+def test_optimization():
+    cams = [f"cam{i}" for i in range(1, 5)]
+    for cam in cams:
+        background = compute_background_model(f"data/{cam}/background.avi", num_frames=30, sample_interval=1) 
+
+        frame = cv2.imread(f"data/{cam}/sampled_image.png")
+        ground_truth_mask = cv2.imread(f"data/{cam}/cleaned_mask.png", cv2.IMREAD_GRAYSCALE)
+        
+        best_thresholds, best_score = optimize_thresholds(frame, background, ground_truth_mask)
+        print(f"Camera {cam}: Best thresholds: {best_thresholds} with XOR error: {best_score}")
+        
+        best_mask = background_subtraction(frame, background, kernel_size=(7,7), hsv_thresholds=best_thresholds)
+        
+        cv2.imshow(f"{cam} - Ground Truth Mask", ground_truth_mask)
+        cv2.imshow(f"{cam} - Optimized Mask", best_mask)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 
@@ -132,6 +157,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # test_optimization()
 
 
 
