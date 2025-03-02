@@ -33,7 +33,7 @@ def build_projection_lut(cams, voxel_space):
 
     return lut
 
-'''
+
 # This part is to create the reconstruction via the lookup table - more efficient
 def reconstruct_voxels(cams, voxel_space, lut, frame_masks, cam_votes=2):
     num_voxels = voxel_space.shape[0]
@@ -83,9 +83,10 @@ def set_voxel_positions(width, height, depth):
         mask = cv2.imread(f"data/{cam}/foreground_mask.png", cv2.IMREAD_GRAYSCALE)
         frame_masks[cam] = mask
         
-    voxel_mask = reconstruct_voxels_multi_frame(cams, voxel_space, lut, frame_masks, cam_votes=2)
+    voxel_mask = reconstruct_voxels(cams, voxel_space, lut, frame_masks, cam_votes=4) #change how many votes needed - when 4, it means that if a point is not seen by one camera it is auto off 
     on_voxels = voxel_space[voxel_mask]
-
+    num_on_voxels = np.count_nonzero(voxel_mask)
+    print("Number of voxels turned on:", num_on_voxels)
     min_x, max_x = x_range
     min_y, max_y = y_range
     min_z, max_z = z_range
@@ -99,15 +100,7 @@ def set_voxel_positions(width, height, depth):
     data = on_voxels.tolist()
     return data, colors
 
-
 '''
-
-
-
-
-
-
-
 def set_voxel_positions(width, height, depth):
     # Generates random voxel locations
     # TODO: You need to calculate proper voxel arrays instead of random ones.
@@ -127,7 +120,7 @@ def set_voxel_positions(width, height, depth):
     cams = [f"cam{i}" for i in range(1, 5)]
 
 
-    voxel_mask = reconstruct_voxels(cams, voxel_space, cam_votes=2)
+    voxel_mask = reconstruct_voxels(cams, voxel_space, lut, frame_masks, cam_votes=2)
     on_voxels = voxel_space[voxel_mask]
     min_x, max_x = x_range
     min_y, max_y = y_range
@@ -144,7 +137,7 @@ def set_voxel_positions(width, height, depth):
     
     data = on_voxels.tolist()
     return data, colors
-
+'''
 
 def get_cam_positions():
     # Generates dummy camera locations at the 4 corners of the room
@@ -156,16 +149,14 @@ def get_cam_positions():
 
     for cam in cams:
             camera_matrix, dist_coeffs, rvec, tvec = load_config(cam)
-            print("rvec ", rvec, "\ntvec ", tvec)
-            #rotation vector to a rotation matrix.
-            R, _ = cv2.Rodrigues(rvec)
 
             #camera center in world coordinates. 
-            cam_center = -np.matmul(R.T, tvec).flatten()
+            cam_center = -np.matmul(rvec.T, tvec).flatten()
             print(cam_center)
             positions.append(cam_center.tolist())
 
-    colors = [[1.0, 0, 0],   # Red
+    print("centers", positions)
+    colors = [[1.0, 0, 0],   # Redχ
             [0, 1.0, 0],   # Green
             [0, 0, 1.0],   # Blue
             [1.0, 1.0, 0]] # Yellow
@@ -192,10 +183,8 @@ def get_cam_rotation_matrices():
     rotation_matrices = []
     for cam in cams: 
         camera_matrix, dist_coeffs, rvec, tvec = load_config(cam) 
-
-        R, _ = cv2.Rodrigues(rvec)
         #camera orientation in world coordinates  
-        R_world = R.T
+        R_world = rvec.T
         M = numpy_to_glm_mat4(R_world)
         rotation_matrices.append(M)
     
