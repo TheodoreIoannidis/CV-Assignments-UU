@@ -14,8 +14,8 @@ def load_config(cam):
     fs.release()
     return camera_matrix, dist_coeffs, rvec, tvec
 
-def create_voxel_space(x_range, y_range, z_range, resolution=4):
-    #adjust resolution (2 will be finer)
+def create_voxel_space(x_range, y_range, z_range, resolution=2):
+    #adjust resolution 
     # this is the "region of interest" to check whether 
     x_vals = np.arange(x_range[0], x_range[1], resolution)
     y_vals = np.arange(y_range[0], y_range[1], resolution)
@@ -23,8 +23,6 @@ def create_voxel_space(x_range, y_range, z_range, resolution=4):
     X, Y, Z = np.meshgrid(x_vals, y_vals, z_vals, indexing='ij')
     voxel_space = np.stack([X.ravel(), Y.ravel(), Z.ravel()], axis=-1)
     return voxel_space
-
-
 
 
 def reconstruct_voxels(cams, voxel_space, cam_votes=3):
