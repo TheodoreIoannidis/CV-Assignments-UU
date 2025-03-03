@@ -100,6 +100,7 @@ def set_voxel_positions(width, height, depth):
     data = on_voxels.tolist()
     return data, colors
 
+'''
 def set_voxel_positions(width, height, depth):
     # Generates random voxel locations
     # TODO: You need to calculate proper voxel arrays instead of random ones.
@@ -138,7 +139,7 @@ def set_voxel_positions(width, height, depth):
     
     data = on_voxels.tolist()
     return data, colors
-
+'''
 
 def get_cam_positions():
     # Generates dummy camera locations at the 4 corners of the room
