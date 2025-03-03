@@ -100,7 +100,6 @@ def set_voxel_positions(width, height, depth):
     data = on_voxels.tolist()
     return data, colors
 
-'''
 def set_voxel_positions(width, height, depth):
     # Generates random voxel locations
     # TODO: You need to calculate proper voxel arrays instead of random ones.
@@ -118,10 +117,12 @@ def set_voxel_positions(width, height, depth):
     voxel_space = np.stack([X.ravel(), Y.ravel(), Z.ravel()], axis=-1)
 
     cams = [f"cam{i}" for i in range(1, 5)]
-
+    lut = build_projection_lut(cams, voxel_space)
+    frame_masks = {cam: cv2.imread(f"data/{cam}/foreground_mask.png", cv2.IMREAD_GRAYSCALE) for cam in cams}
 
     voxel_mask = reconstruct_voxels(cams, voxel_space, lut, frame_masks, cam_votes=2)
     on_voxels = voxel_space[voxel_mask]
+    
     min_x, max_x = x_range
     min_y, max_y = y_range
     min_z, max_z = z_range
@@ -137,7 +138,7 @@ def set_voxel_positions(width, height, depth):
     
     data = on_voxels.tolist()
     return data, colors
-'''
+
 
 def get_cam_positions():
     # Generates dummy camera locations at the 4 corners of the room
